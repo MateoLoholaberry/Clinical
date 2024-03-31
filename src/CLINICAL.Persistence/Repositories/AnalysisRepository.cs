@@ -2,12 +2,7 @@
 using CLINICAL.Domain.Entities;
 using CLINICAL.Persistence.Context;
 using Dapper;
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CLINICAL.Persistence.Repositories
 {
@@ -31,5 +26,54 @@ namespace CLINICAL.Persistence.Repositories
             return analysis;
         }
 
+        public async Task<Analysis> AnalysisById(int analysisId)
+        {
+            using var connection = _context.CreateConnection;
+
+            var query = "uspAnalysisById";
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("AnalysisId", analysisId);
+
+            var analysis = await connection.QuerySingleOrDefaultAsync<Analysis>(query, parameters, commandType: CommandType.StoredProcedure);
+
+
+            return analysis;
+        }
+
+        public async Task<bool> AnalysisRegister(Analysis analysis)
+        {
+            using var connection = _context.CreateConnection;
+
+            var query = "uspAnalysisRegister";
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("Name", analysis.Name);
+            parameters.Add("State", 1);
+            parameters.Add("AuditCreateDate", DateTime.Now);
+
+            var recordsAffected = await connection.ExecuteAsync(query, parameters, commandType: CommandType.StoredProcedure);
+
+            return recordsAffected > 0;
+        }
+
+        public async Task<bool> AnalysisEdit(Analysis analysis)
+        {
+            using var connection = _context.CreateConnection;
+
+            var query = "uspAnalysisEdit";
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("AnalysisId", analysis.AnalysisId);
+            parameters.Add("Name", analysis.Name);
+
+
+            var recordsAffected = await connection.ExecuteAsync(query, parameters, commandType: CommandType.StoredProcedure);
+
+            return recordsAffected > 0;
+        }
     }
 }
